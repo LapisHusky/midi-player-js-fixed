@@ -894,31 +894,35 @@ var MidiPlayer = (function () {
               this.triggerPlayerEvent('endOfFile');
               this.stop();
             } else {
-              var event = track.handleEvent(this.tick, dryRun);
+              var event = true;
+              while (event) {
+                var event = track.handleEvent(this.tick, dryRun);
 
-              if (dryRun && event) {
-                if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                  // Grab tempo if available.
-                  this.defaultTempo = event.data;
-                  this.setTempo(event.data);
-                }
+                if (dryRun && event) {
+                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                   // Grab tempo if available.
+                    this.defaultTempo = event.data;
+                   this.setTempo(event.data);
+                 }
 
-                if (event.hasOwnProperty('name') && event.name === 'Program Change') {
-                  if (!this.instruments.includes(event.value)) {
-                    this.instruments.push(event.value);
+                  if (event.hasOwnProperty('name') && event.name === 'Program Change') {
+                    if (!this.instruments.includes(event.value)) {
+                     this.instruments.push(event.value);
+                    }
+                 }
+                } else if (event) {
+                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                    // Grab tempo if available.
+                    this.setTempo(event.data);
+
+                    if (this.isPlaying()) {
+                      this.pause().play();
+                    }
                   }
-                }
-              } else if (event) {
-                if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                  // Grab tempo if available.
-                  this.setTempo(event.data);
 
-                  if (this.isPlaying()) {
-                    this.pause().play();
-                  }
+                  this.emitEvent(event);
                 }
-
-                this.emitEvent(event);
+                if (dryRun) event = false;
               }
             }
           }, this);
