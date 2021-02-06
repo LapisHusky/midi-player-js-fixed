@@ -894,8 +894,8 @@ var MidiPlayer = (function () {
               this.triggerPlayerEvent('endOfFile');
               this.stop();
             } else {
-              //var event = true;
-              //while (event) {
+              var event = true;
+              while (event) {
                 var event = track.handleEvent(this.tick, dryRun);
 
                 if (dryRun && event) {
@@ -922,8 +922,7 @@ var MidiPlayer = (function () {
 
                   this.emitEvent(event);
                 }
-                //if (dryRun) event = false;
-              //}
+              }
             }
           }, this);
           if (!dryRun) this.triggerPlayerEvent('playing', {
