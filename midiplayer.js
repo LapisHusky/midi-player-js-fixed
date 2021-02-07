@@ -887,46 +887,42 @@ var MidiPlayer = (function () {
         if (!this.inLoop) {
           this.inLoop = true;
           this.tick = this.getCurrentTick();
-          var hadEvent = false;
-          do {
-            hadEvent = false;
-            this.tracks.forEach(function (track, index) {
-              // Handle next event
-              if (!dryRun && this.endOfFile()) {
-                //console.log('end of file')
-                this.triggerPlayerEvent('endOfFile');
-                this.stop();
-              } else {
-                var event = track.handleEvent(this.tick, dryRun);
-                if (event && !dryRun) hadEvent = true;
+          this.tracks.forEach(function (track, index) {
+            // Handle next event
+            if (!dryRun && this.endOfFile()) {
+              //console.log('end of file')
+              this.triggerPlayerEvent('endOfFile');
+              this.stop();
+            } else {
+              var event = track.handleEvent(this.tick, dryRun);
+              if (event) this.hadEvent = true;
 
-                if (dryRun && event) {
-                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                    // Grab tempo if available.
-                    this.defaultTempo = event.data;
-                    this.setTempo(event.data);
-                  }
-
-                  if (event.hasOwnProperty('name') && event.name === 'Program Change') {
-                    if (!this.instruments.includes(event.value)) {
-                      this.instruments.push(event.value);
-                    }
-                  }
-                } else if (event) {
-                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                    // Grab tempo if available.
-                    this.setTempo(event.data);
-
-                    if (this.isPlaying()) {
-                      this.pause().play();
-                    }
-                  }
-
-                  this.emitEvent(event);
+              if (dryRun && event) {
+                if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                  // Grab tempo if available.
+                  this.defaultTempo = event.data;
+                  this.setTempo(event.data);
                 }
+
+                if (event.hasOwnProperty('name') && event.name === 'Program Change') {
+                  if (!this.instruments.includes(event.value)) {
+                    this.instruments.push(event.value);
+                  }
+                }
+              } else if (event) {
+                if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                  // Grab tempo if available.
+                  this.setTempo(event.data);
+
+                  if (this.isPlaying()) {
+                    this.pause().play();
+                  }
+                }
+
+                this.emitEvent(event);
               }
-            }, this);
-          } while (hadEvent);
+            }
+          }, this);
           if (!dryRun) this.triggerPlayerEvent('playing', {
             tick: this.tick
           });
@@ -969,7 +965,12 @@ var MidiPlayer = (function () {
         if (!this.startTime) this.startTime = new Date().getTime(); // Start play loop
         //window.requestAnimationFrame(this.playLoop.bind(this));
 
-        this.setIntervalId = setInterval(this.playLoop.bind(this), this.sampleRate); //this.setIntervalId = this.loop();
+        this.setIntervalId = setInterval(function() {
+            do {
+                this.hadEvent = false;
+                this.playLoop();
+            } while(this.hadEvent);
+        }.bind(this), this.sampleRate); //this.setIntervalId = this.loop();
 
         return this;
       }
