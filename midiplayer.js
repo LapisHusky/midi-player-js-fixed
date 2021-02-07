@@ -897,7 +897,7 @@ var MidiPlayer = (function () {
               var event = true;
               while (event) {
                 var event = track.handleEvent(this.tick, dryRun);
-                if (event) {console.log(Date.now()); console.log(event)};
+                if (event) {console.log(Date.now() + ' ' + dryRun); console.log(event)};
                 if (dryRun && event) {
                   if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
                    // Grab tempo if available.
