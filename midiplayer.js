@@ -896,46 +896,43 @@ var MidiPlayer = (function () {
               this.stop();
             } else {
               var event = true;
-              var i = 0;
-              while (event) {
-                i++;
+              var lastIndex = 0;
+              while (event && lastIndex !== -1) {
                 var event = track.handleEvent(this.tick, dryRun);
-                if (event) {console.log(Date.now() + ' ' + dryRun); console.log(event)};
-                if (dryRun && event) {
-                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                   // Grab tempo if available.
-                    this.defaultTempo = event.data;
-                   this.setTempo(event.data);
-                 }
-
-                  if (event.hasOwnProperty('name') && event.name === 'Program Change') {
-                    if (!this.instruments.includes(event.value)) {
-                     this.instruments.push(event.value);
-                    }
-                 }
-                } else if (event) {
-                  if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
-                    // Grab tempo if available.
+                if (event && event.byteIndex >= lastIndex) {
+                  lastIndex = event.byteIndex;
+                  if (event) {console.log(Date.now() + ' ' + dryRun); console.log(event)};
+                  if (dryRun && event) {
+                    if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                     // Grab tempo if available.
+                     this.defaultTempo = event.data;
                     this.setTempo(event.data);
+                   }
 
-                    if (this.isPlaying()) {
-                      this.pause().play();
+                    if (event.hasOwnProperty('name') && event.name === 'Program Change') {
+                      if (!this.instruments.includes(event.value)) {
+                       this.instruments.push(event.value);
+                      }
+                   }
+                 } else if (event) {
+                   if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
+                      // Grab tempo if available.
+                     this.setTempo(event.data);
+
+                     if (this.isPlaying()) {
+                       this.pause().play();
+                      }
                     }
-                  }
 
-                  this.emitEvent(event);
+                    this.emitEvent(event);
+                  }
+                } else {
+                  var lastIndex === -1;
                 }
               }
-              if (i > mostEvents) mostEvents = i;
             }
           }, this);
-          if (!dryRun) {
-            for (var i = 0; i < mostEvents; i++) {
-              this.triggerPlayerEvent('playing', {
-                tick: this.tick
-              });
-            }
-          }
+          if (!dryRun) this.triggerPlayerEvent('playing', {tick: this.tick});
           this.inLoop = false;
         }
       }
