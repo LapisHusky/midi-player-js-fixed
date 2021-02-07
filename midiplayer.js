@@ -897,7 +897,7 @@ var MidiPlayer = (function () {
                 this.stop();
               } else {
                 var event = track.handleEvent(this.tick, dryRun);
-                if (event) hadEvent = true;
+                if (event && !dryRun) hadEvent = true;
 
                 if (dryRun && event) {
                   if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
