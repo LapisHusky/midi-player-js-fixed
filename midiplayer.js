@@ -927,7 +927,7 @@ var MidiPlayer = (function () {
                     this.emitEvent(event);
                   }
                 } else {
-                  var lastIndex === -1;
+                  lastIndex = -1;
                 }
               }
             }
