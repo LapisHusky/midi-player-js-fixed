@@ -889,6 +889,7 @@ var MidiPlayer = (function () {
           this.tick = this.getCurrentTick();
           var hadEvent = false;
           do {
+            hadEvent = false;
             this.tracks.forEach(function (track, index) {
               // Handle next event
               if (!dryRun && this.endOfFile()) {
