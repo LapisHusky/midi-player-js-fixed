@@ -887,6 +887,7 @@ var MidiPlayer = (function () {
         if (!this.inLoop) {
           this.inLoop = true;
           this.tick = this.getCurrentTick();
+          var mostEvents = 0;
           this.tracks.forEach(function (track, index) {
             // Handle next event
             if (!dryRun && this.endOfFile()) {
@@ -895,7 +896,9 @@ var MidiPlayer = (function () {
               this.stop();
             } else {
               var event = true;
+              var i = 0;
               while (event) {
+                i++;
                 var event = track.handleEvent(this.tick, dryRun);
                 if (event) {console.log(Date.now() + ' ' + dryRun); console.log(event)};
                 if (dryRun && event) {
@@ -923,11 +926,16 @@ var MidiPlayer = (function () {
                   this.emitEvent(event);
                 }
               }
+              if (i > mostEvents) mostEvents = i;
             }
           }, this);
-          if (!dryRun) this.triggerPlayerEvent('playing', {
-            tick: this.tick
-          });
+          if (!dryRun) {
+            for (var i = 0; i < mostEvents; i++) {
+              this.triggerPlayerEvent('playing', {
+                tick: this.tick
+              });
+            }
+          }
           this.inLoop = false;
         }
       }
