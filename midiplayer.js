@@ -720,9 +720,10 @@ var MidiPlayer = (function () {
     _createClass(Player, [{
       key: "loadFile",
       value: function loadFile(path) {
-        {
-          throw 'loadFile is only supported on Node.js';
-        }
+        var fs = require('fs');
+
+        this.buffer = fs.readFileSync(path);
+        return this.fileLoaded();
       }
       /**
        * Load an array buffer into the player.
@@ -894,6 +895,7 @@ var MidiPlayer = (function () {
               this.stop();
             } else {
               var event = track.handleEvent(this.tick, dryRun);
+              if (event) this.hadEvent = true;
 
               if (dryRun && event) {
                 if (event.hasOwnProperty('name') && event.name === 'Set Tempo') {
@@ -963,7 +965,12 @@ var MidiPlayer = (function () {
         if (!this.startTime) this.startTime = new Date().getTime(); // Start play loop
         //window.requestAnimationFrame(this.playLoop.bind(this));
 
-        this.setIntervalId = setInterval(this.playLoop.bind(this), this.sampleRate); //this.setIntervalId = this.loop();
+        this.setIntervalId = setInterval(function() {
+          do {
+            this.hadEvent = false;
+            this.playLoop();
+          } while(this.hadEvent);
+        }.bind(this), this.sampleRate); //this.setIntervalId = this.loop();
 
         return this;
       }
